@@ -23,6 +23,9 @@ namespace MyBird
         #region Custom Method
         void RollingMove()
         {
+            if (GameManager.IsDeath == true)
+                return;
+
             // GroundParent 전체를 왼쪽으로 이동
             transform.Translate(Vector2.left * moveSpeed * Time.deltaTime, Space.World);
 

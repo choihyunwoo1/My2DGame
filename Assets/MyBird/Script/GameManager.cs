@@ -9,6 +9,11 @@ namespace MyBird
     {
         #region Variables
         static bool isStart;
+
+        //게임오버 체크
+        static bool isDeath;
+
+        static int score;
         #endregion
 
         #region Property
@@ -17,6 +22,18 @@ namespace MyBird
             get { return isStart; }
             set {isStart = value;}
         }
+        public static bool IsDeath
+        {
+            get { return isDeath; }
+            set { isDeath = value; }
+        }
+
+        public static int Score
+        {
+            get { return score; }
+            set { score = value; }  
+        }
+
         #endregion
 
         #region Unity Event Method
@@ -24,15 +41,17 @@ namespace MyBird
         {
             //초기화
             isStart = false;
+            isDeath = false;    
+            score = 0;
         }
         void Update()
         {
-      
+            
         }
         #endregion
 
         #region Custom Method
- 
+       
         #endregion
 
     }

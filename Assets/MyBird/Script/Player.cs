@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace MyBird
 {
@@ -23,6 +24,11 @@ namespace MyBird
         [SerializeField] private float rotationSpeed = 5f;     // 회전 부드럽게 전환 속도
 
         float moveSpeed = 5f; //이동 속도
+
+        //버드 대기 UI
+        public GameObject readyUI;
+
+        public GameObject gameoverUI;
         #endregion
 
         #region Unity Event Method
@@ -62,20 +68,56 @@ namespace MyBird
                 return;
             }
         }
+
+        //충돌체크 - 매개변수로 부딪힌 충돌체를 입력 받는다
+        private void OnCollisionEnter2D(Collision2D collision)
+        {
+            //충돌한 충돌체 체크
+            if (collision.gameObject.tag == "Pipe")
+            {
+                GameOver();
+            }
+            else if (collision.gameObject.tag == "Ground")
+            {
+                GameOver();
+            }
+        }
+
+        //점수 획득 체크
+        private void OnTriggerEnter2D(Collider2D collision)
+        {
+            if (collision.gameObject.tag == "Point")
+            {
+                Debug.Log("Point 획득");
+                GameManager.Score++;
+            }
+        }
         #endregion
 
         #region Custom Method
+        void GameOver()
+        { 
+            GameManager.IsDeath =true;
+            gameoverUI.SetActive(true);
+        }
+
         void InPutBird()
         {
+            if(GameManager.IsDeath == true) 
+                return;
+
             //스페이스키 OR 마우스 원클릭으로 입력받기
             keyJump |= Input.GetKeyDown(KeyCode.Space);
             keyJump |= Input.GetMouseButtonDown(0);
 
-            //
+            //플레이어 이동 시작
             if (GameManager.IsStart == false && keyJump == true)
             { 
                 GameManager.IsStart = true;
             }
+
+            //UI
+            readyUI.SetActive(false);
         }
 
         void ReadyBird()
@@ -88,6 +130,9 @@ namespace MyBird
 
         void JumpBird()
         {
+            if (GameManager.IsDeath == true)
+                return;
+
             // 기존 속도를 0으로 초기화해서 일관된 점프 느낌 만들기
             rb2D.linearVelocity = Vector2.zero;
 
@@ -97,6 +142,9 @@ namespace MyBird
 
         void RotateBird()
         {
+            if (GameManager.IsDeath == true)
+                return;
+
             // 새의 현재 y속도에 따라 회전 각도를 계산
             float targetAngle;
 
@@ -120,6 +168,9 @@ namespace MyBird
         // Bird 이동
         void MoveBird()
         {
+            if(GameManager.IsDeath == true)
+                return;
+
             //오른쪽으로 이동
             transform.Translate(Vector3.right* moveSpeed* Time.deltaTime, Space.World); 
         }
