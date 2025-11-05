@@ -12,7 +12,7 @@ namespace MyBird
         public GameObject pipePrefab;
 
         //스폰 타이머
-        float spawnTimer = 1f;
+        float spawnTimer = 1.5f;
         float countdown = 0f;
 
         //스폰 높이 랜덤 범위 지정값
@@ -21,8 +21,13 @@ namespace MyBird
         #endregion
 
         #region Unity Event Method
+        private void Start()
+        {
+            spawnTimer = 1.5f;
+        }
         private void Update()
         {
+           
             if (GameManager.IsDeath == true)
                 return;
 
@@ -35,8 +40,10 @@ namespace MyBird
             {
                 //타이머 기능
                 SpawnPipe();
+
                 //타이머 초기화
                 countdown = 0f;
+                spawnTimer = 1.5f - GameManager.spawnValue;
             }
         }
         #endregion

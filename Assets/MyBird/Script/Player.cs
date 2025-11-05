@@ -29,12 +29,15 @@ namespace MyBird
         public GameObject readyUI;
 
         public GameObject gameoverUI;
+
+        AudioSource audioSource; //포인트 사운드
         #endregion
 
         #region Unity Event Method
         void Start()
         {
             rb2D = GetComponent<Rigidbody2D>(); // Rigidbody2D 가져오기
+            audioSource = this.GetComponent<AudioSource>();
         }
 
         void Update() //방향설정, 언어로 이루어진 메서드를 처리하기에 가장 용이함
@@ -88,13 +91,27 @@ namespace MyBird
         {
             if (collision.gameObject.tag == "Point")
             {
-                Debug.Log("Point 획득");
-                GameManager.Score++;
+                GetPoint();
             }
         }
         #endregion
 
         #region Custom Method
+        void GetPoint()
+        {
+            GameManager.Score++;
+            
+            //효과: VFX, SFX..
+            audioSource.Play();
+
+            //게임 포인트 체크 - 기둥을 10개 통과할 때 마다
+            if (GameManager.Score%10 ==-0)
+            {
+                //레벨링
+                GameManager.spawnValue += 0.05f;
+            }
+            
+        }
         void GameOver()
         { 
             GameManager.IsDeath =true;
@@ -106,9 +123,22 @@ namespace MyBird
             if(GameManager.IsDeath == true) 
                 return;
 
+#if UNITY_EDITOR //유니티 에디터 마우스와 키보드 입력 처리
             //스페이스키 OR 마우스 원클릭으로 입력받기
             keyJump |= Input.GetKeyDown(KeyCode.Space);
             keyJump |= Input.GetMouseButtonDown(0);
+#else       //그외 플랫폼에서 터치 입력 처리
+            if(Input.touchCount > 0)
+            {
+                //첫번째 들어온 터치 가져오기
+                Touch touch = Input.GetTouch(0);
+
+                if (touch.phase == TouchPhase.Began)
+                {
+                    keyJump = true;
+                }
+            }
+#endif
 
             //플레이어 이동 시작
             if (GameManager.IsStart == false && keyJump == true)
@@ -176,6 +206,6 @@ namespace MyBird
         }
 
 
-        #endregion 
+#endregion
     }
 }

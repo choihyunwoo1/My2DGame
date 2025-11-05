@@ -36,7 +36,7 @@ namespace MyBird
                 //UI
                 newText.SetActive(true);
             }
-            bestScoreText.text = GameManager.Score.ToString();
+            bestScoreText.text = bestScore.ToString();
         }
 
         #endregion
@@ -45,6 +45,13 @@ namespace MyBird
         //다시하기
         public void Retry()
         {
+            // GameManager 상태 초기화 (씬 로드 전에 실행해야 함)
+            // 만약 GameManager가 DontDestroyOnLoad라면 이 초기화가 필수입니다.
+            GameManager.IsStart = false;
+            GameManager.IsDeath = false;
+            GameManager.Score = 0;
+
+            // 현재 씬을 다시 로드
             string nowScene = SceneManager.GetActiveScene().name;
             SceneManager.LoadScene(nowScene);
         }
