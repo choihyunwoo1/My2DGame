@@ -26,6 +26,7 @@ namespace My2DGame
         {
             //이동
             rb2D.linearVelocity = inputmove * walkSpeed;
+            //rb2D.linearVelocity = new Vector2(inputmove.x, 
         }
         #endregion
 

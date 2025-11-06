@@ -44,6 +44,9 @@ TagManager:
   - name: Backgtound
     uniqueID: 1878223813
     locked: 0
+  - name: TileMap
+    uniqueID: 1889802253
+    locked: 0
   - name: Player
     uniqueID: 3050431639
     locked: 0
