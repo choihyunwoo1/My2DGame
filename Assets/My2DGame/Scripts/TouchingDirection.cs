@@ -59,6 +59,7 @@ namespace My2DGame
             {
                 isWall = value;
                 //애니 파라미터 셋팅
+                animator.SetBool(AnimationString.IsWall, value);
             }
         }
 
