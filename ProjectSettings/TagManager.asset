@@ -14,12 +14,12 @@ TagManager:
   - 
   - Water
   - UI
-  - Player
   - Ground
-  - 
-  - 
-  - 
-  - 
+  - Player
+  - Enemy
+  - PlayerHitbox
+  - EnemyHitbox
+  - GroundDetection
   - 
   - 
   - 

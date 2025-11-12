@@ -3,217 +3,219 @@ using UnityEngine.InputSystem;
 
 namespace My2DGame
 {
+    /// <summary>
+    /// ÇÃ·¹ÀÌ¾î¸¦ Á¦¾îÇÏ´Â Å¬·¡½º
+    /// </summary>
     public class PlayerController : MonoBehaviour
     {
         #region Variables
-        [Header("ì´ë™ ê´€ë ¨")]
-        [SerializeField] public float walkSpeed = 3f; // ê±·ê¸° ì†ë„
-        [SerializeField] public float runSpeed = 5f;  // ë‹¬ë¦¬ê¸° ì†ë„
-        [SerializeField] public float airControlPercent = 0.5f; // ê³µì¤‘ ì œì–´ ë¹„ìœ¨
-
-        [Header("ì í”„ ê´€ë ¨")]
-        [SerializeField] public float jumpForce = 400f; // ì í”„ í˜
-        [SerializeField] private int maxJumpCount = 2; // ìµœëŒ€ ì í”„ ê°€ëŠ¥ íšŸìˆ˜
-
-        [Header("ë²½ ìŠ¬ë¼ì´ë“œ/ì í”„ ê´€ë ¨")]
-        [SerializeField] private float wallSlideSpeed = -2f; // ë²½ì—ì„œ ë¯¸ë„ëŸ¬ì§€ëŠ” ì†ë„
-        [SerializeField] private Vector2 wallJumpForce = new Vector2(5f, 7f); // ë²½ì í”„ ë°˜ë°œë ¥
-
-        // ì°¸ì¡°
-        private Animator animator;
+        //ÂüÁ¶
         private Rigidbody2D rb2D;
-        private TouchingDirection touchingDirection;
+        private Animator animator;
+        private TouchingDirections touchingDirections;
+        private Damageable damageable;
 
-        private Vector2 inputmove = Vector2.zero;
+        //ÀÌµ¿
+        [SerializeField] private float walkSpeed = 3f;          //°È´Â ¼Óµµ
+        [SerializeField] private float runSpeed = 6f;           //¶Ù´Â ¼Óµµ
+        [SerializeField] private float airSpeed = 2f;           //°øÁß ¼Óµµ
 
-        // ìƒíƒœê°’
-        private bool isMove = false;
+        //ÀÔ·Â °ª
+        private Vector2 inputMove = Vector2.zero;
+
+        //¹İÀü
         private bool isFacingRight = true;
+
+        //°È±â
+        private bool isMove = false;
+        //¶Ù±â
         private bool isRun = false;
-        private bool isJump = false;
-        private int currentJumpCount = 0;
-        private bool isAttacking = false;
-        private bool isWallSliding = false;
-        private bool isWallJumping = false;
+
+        //Á¡ÇÁ
+        [SerializeField]
+        private float jumpForce = 5f;
         #endregion
 
         #region Property
+        public bool IsFacingRight
+        {
+            get { return isFacingRight; }
+            private set
+            {
+                //¹İÀü ±¸Çö
+                if(isFacingRight != value)
+                {
+                    this.transform.localScale *= new Vector2(-1, 1);
+                }
+                isFacingRight = value;
+            }
+        }
+
         public bool IsMove
-        { 
-            get {return isMove;}
+        {
+            get { return isMove; }
             private set
             {
                 isMove = value;
                 animator.SetBool(AnimationString.IsMove, value);
             }
         }
+
         public bool IsRun
         {
-            get { return isRun;}
+            get { return isRun; }
             private set
             {
                 isRun = value;
                 animator.SetBool(AnimationString.IsRun, value);
             }
         }
-        //í˜„ì¬ ì´ë™ì†ë„
+
+        //ÇöÀç ÀÌµ¿ ¼Óµµ - ÀĞ±â Àü¿ë
         public float CurrentMoveSpeed
         {
             get
             {
-                float baseSpeed = IsMove ? (IsRun ? runSpeed : walkSpeed) : 0f;
-
-                // ê³µì¤‘ì—ì„œ ì´ë™ ì œì–´ ê°ì†Œ
-                if (!touchingDirection.IsGround)
-                    baseSpeed *= airControlPercent;
-
-                return baseSpeed;
-            }
-        }
-        public bool IsFacingRight
-        {
-            get { return isFacingRight;}
-            set
-            {
-                //ë°˜ì „ êµ¬í˜„
-                if (isFacingRight != value)
+                if(CannotMove)  //¾Ö´Ï¸Ş´ÏÅÍ ÆÄ¶ó¹ÌÅÍ °ª ÀĞ¾î¿À±â
                 {
-                    this.transform.localScale *= new Vector2(-1, 1);
+                    return 0f;
                 }
-                isFacingRight = value; 
+
+                if(IsMove && touchingDirections.IsWall == false) //ÀÌµ¿ °¡´É
+                {
+                    if(touchingDirections.IsGround) //¶¥¿¡ ÀÖÀ»¶§
+                    {
+                        if (IsRun)
+                        {
+                            return runSpeed;
+                        }
+                        else
+                        {
+                            return walkSpeed;
+                        }
+                    }
+                    else //°øÁß¿¡ ÀÖÀ»¶§
+                    {
+                        return airSpeed;
+                    }
+                }
+                else //ÀÌµ¿ ºÒ°¡
+                {
+                    return 0f;
+                }
             }
         }
-        public bool IsJump
+
+        //¾Ö´Ï¸ŞÀÌÅÍÀÇ ÆÄ¶ó¹ÌÅÍ °ª(CannotMove) ÀĞ¾î¿À±â
+        public bool CannotMove
         {
-            get => isJump;
-            private set
+            get
             {
-                isJump = value;
-                animator.SetBool(AnimationString.JumpTrigger, value);
+                return animator.GetBool(AnimationString.CannotMove);
+            }
+        }
+
+        //¾Ö´Ï¸ŞÀÌÅÍÀÇ ÆÄ¶ó¹ÌÅÍ °ª(LockVelocity) ÀĞ¾î¿À±â
+        public bool LockVelocity
+        {
+            get
+            {
+                return animator.GetBool(AnimationString.LockVelocity);
             }
         }
         #endregion
 
         #region Unity Event Method
-        void Awake()
+        private void Awake()
         {
-            rb2D = GetComponent<Rigidbody2D>(); //ì°¸ì¡°
-            animator = GetComponent<Animator>();
-            touchingDirection = GetComponent<TouchingDirection>();
-        }
-        //ì¼ì •í•œ ê°„ê²©ìœ¼ë¡œ ì—°ì‚°í•˜ê¸°ì— ë¬¼ë¦¬ì—°ì‚°ì€ FixedUpdateì—ì„œ = time.Deltatime í•„ìš” ì—†ìŒ
-        void FixedUpdate()
-        { // ë²½ ìŠ¬ë¼ì´ë“œ íŒì •
-            isWallSliding = touchingDirection.IsWall
-                            && !touchingDirection.IsGround
-                            && rb2D.linearVelocity.y < 0f
-                            && Mathf.Sign(inputmove.x) == Mathf.Sign(transform.localScale.x);
+            //ÂüÁ¶
+            rb2D = this.GetComponent<Rigidbody2D>();
+            animator = this.GetComponent<Animator>();
+            touchingDirections = this.GetComponent<TouchingDirections>();
+            damageable = this.GetComponent<Damageable>();
 
-            // Xì´ë™ (ë²½ì— ë¶™ì–´ ìˆì„ ë• ì œì™¸)
-            if (!isWallSliding && !isWallJumping)
+            //ÀÌº¥Æ® ÇÔ¼ö µî·Ï
+            damageable.hitAction += OnHit;
+        }
+
+        private void FixedUpdate()
+        {
+            //ÁÂ¿ì ÀÌµ¿
+            if(LockVelocity == false)
             {
-                rb2D.linearVelocity = new Vector2(inputmove.x * CurrentMoveSpeed, rb2D.linearVelocity.y);
+                rb2D.linearVelocity = new Vector2(inputMove.x * CurrentMoveSpeed, rb2D.linearVelocity.y);
             }
-            //ê³µê²©ì¤‘ ì´ë™ ì œì–´
-            if (!isWallSliding && !isWallJumping && !isAttacking)
-            {
-                rb2D.linearVelocity = new Vector2(inputmove.x * CurrentMoveSpeed, rb2D.linearVelocity.y);
-            }
-            // ë²½ ìŠ¬ë¼ì´ë“œ ì²˜ë¦¬
-            if (isWallSliding)
-            {
-                rb2D.linearVelocity = new Vector2(0f, Mathf.Max(rb2D.linearVelocity.y, wallSlideSpeed));
-            }
-            // ì°©ì§€ ì‹œ ì í”„ ì´ˆê¸°í™”
-            if (touchingDirection.IsGround)
-            {
-                IsJump = false;
-                currentJumpCount = 0;
-                isWallJumping = false; // ë²½ì í”„ ìƒíƒœ í•´ì œ
-            }
-            // ì• ë‹ˆë©”ì´ì…˜ Yì†ë„
-            animator.SetFloat(AnimationString.Yvelocity, rb2D.linearVelocityY);
+
+            //Á¡ÇÁ ¾Ö´Ï¸ŞÀÌ¼Ç
+            animator.SetFloat(AnimationString.YVelocity, rb2D.linearVelocityY);
         }
         #endregion
 
         #region Custom Method
-        //ë°©í–¥ ì „í™˜
+        //¹æÇâ ÀüÈ¯
         void SetFacingDirection(Vector2 moveInput)
         {
-            if (moveInput.x > 0f && !IsFacingRight) // ì˜¤ë¥¸ìª½ ì´ë™ ì‹œ ì˜¤ë¥¸ìª½ ë°”ë¼ë³´ê²Œ
+            if (CannotMove)
+                return;
+
+            if(moveInput.x > 0f && IsFacingRight == false)    //¿À¸¥ÂÊÀ¸·Î ÀÌµ¿
             {
                 IsFacingRight = true;
             }
-            else if (moveInput.x < 0f && IsFacingRight) // ì™¼ìª½ ì´ë™ ì‹œ ì™¼ìª½ ë°”ë¼ë³´ê²Œ
+            else if (moveInput.x < 0f && IsFacingRight == true)  //¿ŞÂÊÀ¸·Î ÀÌµ¿
             {
                 IsFacingRight = false;
             }
         }
+
+        //ÀÌµ¿ ÀÔ·Â Ã³¸®
         public void OnMove(InputAction.CallbackContext context)
         {
-            if (isAttacking) return; // ê³µê²© ì¤‘ì´ë©´ ì´ë™ ë¬´ì‹œ
-
-            inputmove = context.ReadValue<Vector2>();
-            IsMove = (inputmove != Vector2.zero);
-            SetFacingDirection(inputmove);
+            inputMove = context.ReadValue<Vector2>();
+            IsMove = (inputMove != Vector2.zero);
+            //¹æÇâ ÀüÈ¯
+            SetFacingDirection(inputMove);
         }
+
+        //·± ÀÔ·Â Ã³¸®
         public void OnRun(InputAction.CallbackContext context)
         {
-            if (context.started) //ë²„íŠ¼ì„ ëˆŒë €ì„ë•Œ
+            if(context.started) //¹öÆ°À» ´­·¶À»¶§
+            {
                 IsRun = true;
-            else if (context.canceled) //ë²„íŠ¼ì„ ë•”ë•Œ
+            }
+            else if(context.canceled) //¹öÆ°À» ¶¿¶§
+            {
                 IsRun = false;
+            }
         }
+
+        //Á¡ÇÁ ÀÔ·Â Ã³¸®
         public void OnJump(InputAction.CallbackContext context)
         {
-            if (!context.performed) return;
-
-            // ë²½ ìŠ¬ë¼ì´ë“œ ì¤‘ ë²½ ì í”„
-            if (isWallSliding)
+            if (context.started && touchingDirections.IsGround)
             {
-                isWallJumping = true;
+                //Debug.Log("ÇÃ·¹ÀÌ¾î°¡ Á¡ÇÁ ÇÕ´Ï´Ù");
                 animator.SetTrigger(AnimationString.JumpTrigger);
-
-                // ë°©í–¥ ë°˜ì „ í›„ ë°˜ëŒ€ìª½ìœ¼ë¡œ ì í”„
-                IsFacingRight = !IsFacingRight;
-                Vector2 jumpDir = new Vector2(IsFacingRight ? 1f : -1f, 1f);
-                rb2D.linearVelocity = Vector2.zero;
-                rb2D.AddForce(jumpDir.normalized * wallJumpForce, ForceMode2D.Impulse);
-
-                Invoke(nameof(ResetWallJump), 0.2f); // ì ì‹œ í›„ ì´ë™ ë³µê·€
-            }
-            // ì¼ë°˜ ì í”„ (2ë‹¨ í¬í•¨)
-            else if (currentJumpCount < maxJumpCount)
-            {
-                animator.SetTrigger(AnimationString.JumpTrigger);
-                rb2D.linearVelocity = new Vector2(rb2D.linearVelocity.x, 0f);
-                rb2D.AddForce(Vector2.up * jumpForce);
-                IsJump = true;
-                currentJumpCount++;
-            }
-
-            void ResetWallJump()
-            {
-                isWallJumping = false;
+                rb2D.linearVelocity = new Vector2(rb2D.linearVelocity.x, jumpForce);
             }
         }
+
+        //°ø°İ ÀÔ·Â Ã³¸®
         public void OnAttack(InputAction.CallbackContext context)
         {
-            if (!context.performed) return;
-
-            if (touchingDirection.IsGround)
+            if(context.started && touchingDirections.IsGround)
             {
-                animator.SetTrigger("AttackTrigger");
-                isAttacking = true; // ê³µê²© ì‹œì‘
+                animator.SetTrigger(AnimationString.AttackTrigger);
             }
-
-            OnAttackEnd();
         }
-        // Animation Eventë¥¼ ì´ìš©í•´ì„œ ê³µê²© ì¢…ë£Œ ì‹œì ì— í˜¸ì¶œ
-        public void OnAttackEnd()
+
+        //µ¥¹ÌÁö ÀÌº¥Æ®¿¡ µî·ÏµÇ´Â ÇÔ¼ö
+        public void OnHit(float damage, Vector2 knockback)
         {
-            isAttacking = false; // ê³µê²© ì¢…ë£Œ
+            rb2D.linearVelocity = new Vector2(knockback.x, rb2D.linearVelocityY + knockback.y);
         }
         #endregion
+
     }
 }
