@@ -14,6 +14,7 @@ namespace My2DGame
         Canvas gameCanvas;
 
         public GameObject damageTextPrefab; //데미지 텍스트 연출 프리팹
+        public GameObject healTextPrefab; //힐 텍스트 연출 프리팹
         #endregion
 
         #region Unity Event Method
@@ -26,12 +27,14 @@ namespace My2DGame
         {
             //이벤트 함수 등록
             CharacterEvents.characterDamaged += CharacterTakeDamage;
+            CharacterEvents.characterHeal += CharacterHeal;
         }
 
         private void OnDisable()
         {
             //이벤트 함수 해체
             CharacterEvents.characterDamaged -= CharacterTakeDamage;
+            CharacterEvents.characterHeal -= CharacterHeal;
         }
         #endregion
 
@@ -49,6 +52,21 @@ namespace My2DGame
             TextMeshProUGUI damageText = textGo .GetComponent<TextMeshProUGUI>();
             damageText.text = damageReceive.ToString();
         }
+
+        //캐릭터가 힐 할대 호출되는 함수 - 힐링 텍스트 연출
+        //매개변수로 캐릭터의 오브젝트,힐을 입력받아 처리
+        public void CharacterHeal(Transform character, float healReceive)
+        {
+            //캐릭터 머리위 위치 가져오기
+            Vector3 spawnPosition = Camera.main.WorldToScreenPoint(character.position);
+
+            GameObject textGo = Instantiate(healTextPrefab, new Vector3(spawnPosition.x, spawnPosition.y), Quaternion.identity, gameCanvas.transform);
+
+            //데미지 값 셋팅
+            TextMeshProUGUI healText = textGo.GetComponent<TextMeshProUGUI>();
+            healText.text = healReceive.ToString();
+        }
+
         #endregion
     }
 }

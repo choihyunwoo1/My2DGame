@@ -16,6 +16,8 @@ namespace My2DGame
         private Damageable damageable;
 
         //적 감지
+        public DetectionZone DetectionZone;
+        //땅 감지
         public DetectionZone DetectionGround;
 
         //이동
@@ -114,14 +116,14 @@ namespace My2DGame
             //이벤트 함수 등록
             damageable.hitAction += OnHit;
 
-            //detectionZone 이벤트 함수 등록
+            //땅 끝 감지
             DetectionGround.noRemainCollider += OncliffDetection;
         }
 
         private void Update()
         {
             //적 감지
-            HasTarget = (DetectionGround.detectedColliders.Count > 0);
+            HasTarget = (DetectionZone.detectedColliders.Count > 0);
 
             //공격 쿨 다운
             if (CoolDownTime > 0f)

@@ -30,10 +30,13 @@ namespace My2DGame
         private bool isMove = false;
         //뛰기
         private bool isRun = false;
-
         //점프
-        [SerializeField]
-        private float jumpForce = 5f;
+        [SerializeField] private float jumpForce = 5f;
+
+        //화살 발사
+        [SerializeField] private Transform firePoint;   // FirePoint
+        [SerializeField] private GameObject arrowPrefab; // Arrow Prefab
+        [SerializeField] private float arrowSpeed = 10f;
         #endregion
 
         #region Property
@@ -43,7 +46,7 @@ namespace My2DGame
             private set
             {
                 //반전 구현
-                if(isFacingRight != value)
+                if (isFacingRight != value)
                 {
                     this.transform.localScale *= new Vector2(-1, 1);
                 }
@@ -76,14 +79,14 @@ namespace My2DGame
         {
             get
             {
-                if(CannotMove)  //애니메니터 파라미터 값 읽어오기
+                if (CannotMove)  //애니메니터 파라미터 값 읽어오기
                 {
                     return 0f;
                 }
 
-                if(IsMove && touchingDirections.IsWall == false) //이동 가능
+                if (IsMove && touchingDirections.IsWall == false) //이동 가능
                 {
-                    if(touchingDirections.IsGround) //땅에 있을때
+                    if (touchingDirections.IsGround) //땅에 있을때
                     {
                         if (IsRun)
                         {
@@ -141,7 +144,7 @@ namespace My2DGame
         private void FixedUpdate()
         {
             //좌우 이동
-            if(LockVelocity == false)
+            if (LockVelocity == false)
             {
                 rb2D.linearVelocity = new Vector2(inputMove.x * CurrentMoveSpeed, rb2D.linearVelocity.y);
             }
@@ -158,7 +161,7 @@ namespace My2DGame
             if (CannotMove)
                 return;
 
-            if(moveInput.x > 0f && IsFacingRight == false)    //오른쪽으로 이동
+            if (moveInput.x > 0f && IsFacingRight == false)    //오른쪽으로 이동
             {
                 IsFacingRight = true;
             }
@@ -180,11 +183,11 @@ namespace My2DGame
         //런 입력 처리
         public void OnRun(InputAction.CallbackContext context)
         {
-            if(context.started) //버튼을 눌렀을때
+            if (context.started) //버튼을 눌렀을때
             {
                 IsRun = true;
             }
-            else if(context.canceled) //버튼을 뗄때
+            else if (context.canceled) //버튼을 뗄때
             {
                 IsRun = false;
             }
@@ -204,7 +207,7 @@ namespace My2DGame
         //공격 입력 처리
         public void OnAttack(InputAction.CallbackContext context)
         {
-            if(context.started && touchingDirections.IsGround)
+            if (context.started && touchingDirections.IsGround)
             {
                 animator.SetTrigger(AnimationString.AttackTrigger);
             }
@@ -215,7 +218,33 @@ namespace My2DGame
         {
             rb2D.linearVelocity = new Vector2(knockback.x, rb2D.linearVelocityY + knockback.y);
         }
-        #endregion
 
+        public void OnBowAttack(InputAction.CallbackContext context)
+        {
+
+            if (context.started && touchingDirections.IsGround)
+            {
+                animator.SetTrigger(AnimationString.BowAttackTrigger);
+
+                ShootArrow();
+            }
+        }
+        private void ShootArrow()
+        {
+            if (arrowPrefab == null || firePoint == null)
+                return;
+
+            // 화살 생성
+            GameObject arrow = Instantiate(arrowPrefab, firePoint.position, Quaternion.identity);
+
+            // 바라보는 방향으로 발사
+            Rigidbody2D rb = arrow.GetComponent<Rigidbody2D>();
+            if (rb != null)
+            {
+                float direction = IsFacingRight ? 1f : -1f;
+                rb.linearVelocity = new Vector2(direction * arrowSpeed, 0f);
+            }
+        }
+        #endregion
     }
 }
