@@ -12,6 +12,7 @@ namespace My2DGame
         #region Variables
         //감지된 충돌체 리스트
         public List<Collider2D> detectedColliders = new List<Collider2D>();
+        public string targetTag = "Player";
 
         //모든 충돌체의 갯수가 0이 되는 순간 호출되는 이벤트 함수 증
         public UnityAction noRemainCollider;

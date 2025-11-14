@@ -20,5 +20,6 @@ namespace My2DGame
         public static string LockVelocity = "LockVelocity";
         public static string CoolDownTime = "CoolDownTime";
         public static string BowAttackTrigger = "BowAttackTrigger";
+        public static string LockTurn = "LockTurn";
     }
 }

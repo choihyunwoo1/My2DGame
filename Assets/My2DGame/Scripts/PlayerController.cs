@@ -4,39 +4,44 @@ using UnityEngine.InputSystem;
 namespace My2DGame
 {
     /// <summary>
-    /// ÇÃ·¹ÀÌ¾î¸¦ Á¦¾îÇÏ´Â Å¬·¡½º
+    /// í”Œë ˆì´ì–´ë¥¼ ì œì–´í•˜ëŠ” í´ë˜ìŠ¤
     /// </summary>
     public class PlayerController : MonoBehaviour
     {
         #region Variables
-        //ÂüÁ¶
+        //ì°¸ì¡°
         private Rigidbody2D rb2D;
         private Animator animator;
         private TouchingDirections touchingDirections;
         private Damageable damageable;
 
-        //ÀÌµ¿
-        [SerializeField] private float walkSpeed = 3f;          //°È´Â ¼Óµµ
-        [SerializeField] private float runSpeed = 6f;           //¶Ù´Â ¼Óµµ
-        [SerializeField] private float airSpeed = 2f;           //°øÁß ¼Óµµ
+        //ì´ë™
+        [SerializeField] private float walkSpeed = 3f;          //ê±·ëŠ” ì†ë„
+        [SerializeField] private float runSpeed = 6f;           //ë›°ëŠ” ì†ë„
+        [SerializeField] private float airSpeed = 2f;           //ê³µì¤‘ ì†ë„
+        [SerializeField] private float bowCooldown = 0.8f;      // í™”ì‚´ ì¿¨íƒ€ì„
 
-        //ÀÔ·Â °ª
+        //ì…ë ¥ ê°’
         private Vector2 inputMove = Vector2.zero;
 
-        //¹İÀü
+        //ë°˜ì „
         private bool isFacingRight = true;
 
-        //°È±â
+        //ê±·ê¸°
         private bool isMove = false;
-        //¶Ù±â
+        //ë›°ê¸°
         private bool isRun = false;
-        //Á¡ÇÁ
+        //ì í”„
         [SerializeField] private float jumpForce = 5f;
 
-        //È­»ì ¹ß»ç
+        //í™”ì‚´ ë°œì‚¬
         [SerializeField] private Transform firePoint;   // FirePoint
         [SerializeField] private GameObject arrowPrefab; // Arrow Prefab
         [SerializeField] private float arrowSpeed = 10f;
+        private float bowCooldownTimer = 0f;
+
+        //ì”ìƒíš¨ê³¼
+        TrailEffect trailEffect;
         #endregion
 
         #region Property
@@ -45,7 +50,7 @@ namespace My2DGame
             get { return isFacingRight; }
             private set
             {
-                //¹İÀü ±¸Çö
+                //ë°˜ì „ êµ¬í˜„
                 if (isFacingRight != value)
                 {
                     this.transform.localScale *= new Vector2(-1, 1);
@@ -74,19 +79,19 @@ namespace My2DGame
             }
         }
 
-        //ÇöÀç ÀÌµ¿ ¼Óµµ - ÀĞ±â Àü¿ë
+        //í˜„ì¬ ì´ë™ ì†ë„ - ì½ê¸° ì „ìš©
         public float CurrentMoveSpeed
         {
             get
             {
-                if (CannotMove)  //¾Ö´Ï¸Ş´ÏÅÍ ÆÄ¶ó¹ÌÅÍ °ª ÀĞ¾î¿À±â
+                if (CannotMove)  //ì• ë‹ˆë©”ë‹ˆí„° íŒŒë¼ë¯¸í„° ê°’ ì½ì–´ì˜¤ê¸°
                 {
                     return 0f;
                 }
 
-                if (IsMove && touchingDirections.IsWall == false) //ÀÌµ¿ °¡´É
+                if (IsMove && touchingDirections.IsWall == false) //ì´ë™ ê°€ëŠ¥
                 {
-                    if (touchingDirections.IsGround) //¶¥¿¡ ÀÖÀ»¶§
+                    if (touchingDirections.IsGround) //ë•…ì— ìˆì„ë•Œ
                     {
                         if (IsRun)
                         {
@@ -97,19 +102,19 @@ namespace My2DGame
                             return walkSpeed;
                         }
                     }
-                    else //°øÁß¿¡ ÀÖÀ»¶§
+                    else //ê³µì¤‘ì— ìˆì„ë•Œ
                     {
                         return airSpeed;
                     }
                 }
-                else //ÀÌµ¿ ºÒ°¡
+                else //ì´ë™ ë¶ˆê°€
                 {
                     return 0f;
                 }
             }
         }
 
-        //¾Ö´Ï¸ŞÀÌÅÍÀÇ ÆÄ¶ó¹ÌÅÍ °ª(CannotMove) ÀĞ¾î¿À±â
+        //ì• ë‹ˆë©”ì´í„°ì˜ íŒŒë¼ë¯¸í„° ê°’(CannotMove) ì½ì–´ì˜¤ê¸°
         public bool CannotMove
         {
             get
@@ -118,7 +123,7 @@ namespace My2DGame
             }
         }
 
-        //¾Ö´Ï¸ŞÀÌÅÍÀÇ ÆÄ¶ó¹ÌÅÍ °ª(LockVelocity) ÀĞ¾î¿À±â
+        //ì• ë‹ˆë©”ì´í„°ì˜ íŒŒë¼ë¯¸í„° ê°’(LockVelocity) ì½ì–´ì˜¤ê¸°
         public bool LockVelocity
         {
             get
@@ -131,80 +136,96 @@ namespace My2DGame
         #region Unity Event Method
         private void Awake()
         {
-            //ÂüÁ¶
+            //ì°¸ì¡°
             rb2D = this.GetComponent<Rigidbody2D>();
             animator = this.GetComponent<Animator>();
             touchingDirections = this.GetComponent<TouchingDirections>();
             damageable = this.GetComponent<Damageable>();
+            trailEffect = this.GetComponent<TrailEffect>(); 
 
-            //ÀÌº¥Æ® ÇÔ¼ö µî·Ï
+            //ì´ë²¤íŠ¸ í•¨ìˆ˜ ë“±ë¡
             damageable.hitAction += OnHit;
+        }
+        private void Update()
+        {
+            // ì¿¨íƒ€ì„ ê°ì†Œ
+            if (bowCooldownTimer > 0f)
+            {
+                bowCooldownTimer -= Time.deltaTime;
+            }
         }
 
         private void FixedUpdate()
         {
-            //ÁÂ¿ì ÀÌµ¿
-            if (LockVelocity == false)
+            // ì¢Œìš° ì´ë™
+            if (!LockVelocity)
             {
-                rb2D.linearVelocity = new Vector2(inputMove.x * CurrentMoveSpeed, rb2D.linearVelocity.y);
+                float moveSpeed = CurrentMoveSpeed;
+                rb2D.linearVelocity = new Vector2(inputMove.x * moveSpeed, rb2D.linearVelocity.y);
             }
 
-            //Á¡ÇÁ ¾Ö´Ï¸ŞÀÌ¼Ç
+            //ì í”„ ì• ë‹ˆë©”ì´ì…˜
             animator.SetFloat(AnimationString.YVelocity, rb2D.linearVelocityY);
         }
         #endregion
 
         #region Custom Method
-        //¹æÇâ ÀüÈ¯
+        //ë°©í–¥ ì „í™˜
         void SetFacingDirection(Vector2 moveInput)
         {
-            if (CannotMove)
+            // Animatorì—ì„œ ë°©í–¥ ì „í™˜ ê¸ˆì§€ íŒŒë¼ë¯¸í„° í™•ì¸
+            if (animator.GetBool(AnimationString.LockTurn))
                 return;
 
-            if (moveInput.x > 0f && IsFacingRight == false)    //¿À¸¥ÂÊÀ¸·Î ÀÌµ¿
+            if (moveInput.x > 0f && IsFacingRight == false)    //ì˜¤ë¥¸ìª½ìœ¼ë¡œ ì´ë™
             {
                 IsFacingRight = true;
             }
-            else if (moveInput.x < 0f && IsFacingRight == true)  //¿ŞÂÊÀ¸·Î ÀÌµ¿
+            else if (moveInput.x < 0f && IsFacingRight == true)  //ì™¼ìª½ìœ¼ë¡œ ì´ë™
             {
                 IsFacingRight = false;
             }
         }
 
-        //ÀÌµ¿ ÀÔ·Â Ã³¸®
+        //ì´ë™ ì…ë ¥ ì²˜ë¦¬
         public void OnMove(InputAction.CallbackContext context)
         {
             inputMove = context.ReadValue<Vector2>();
             IsMove = (inputMove != Vector2.zero);
-            //¹æÇâ ÀüÈ¯
+            //ë°©í–¥ ì „í™˜
             SetFacingDirection(inputMove);
         }
 
-        //·± ÀÔ·Â Ã³¸®
+        //ëŸ° ì…ë ¥ ì²˜ë¦¬
         public void OnRun(InputAction.CallbackContext context)
         {
-            if (context.started) //¹öÆ°À» ´­·¶À»¶§
+            if (context.started) //ë²„íŠ¼ì„ ëˆŒë €ì„ë•Œ
             {
                 IsRun = true;
             }
-            else if (context.canceled) //¹öÆ°À» ¶¿¶§
+            else if (context.canceled) //ë²„íŠ¼ì„ ë—„ë•Œ
             {
                 IsRun = false;
             }
         }
 
-        //Á¡ÇÁ ÀÔ·Â Ã³¸®
+        //ì í”„ ì…ë ¥ ì²˜ë¦¬
         public void OnJump(InputAction.CallbackContext context)
         {
             if (context.started && touchingDirections.IsGround)
             {
-                //Debug.Log("ÇÃ·¹ÀÌ¾î°¡ Á¡ÇÁ ÇÕ´Ï´Ù");
+                //Debug.Log("í”Œë ˆì´ì–´ê°€ ì í”„ í•©ë‹ˆë‹¤");
                 animator.SetTrigger(AnimationString.JumpTrigger);
                 rb2D.linearVelocity = new Vector2(rb2D.linearVelocity.x, jumpForce);
             }
+
+            if (trailEffect != null)
+            {
+                trailEffect.StartTrailEffect();
+            }
         }
 
-        //°ø°İ ÀÔ·Â Ã³¸®
+        //ê³µê²© ì…ë ¥ ì²˜ë¦¬
         public void OnAttack(InputAction.CallbackContext context)
         {
             if (context.started && touchingDirections.IsGround)
@@ -213,7 +234,7 @@ namespace My2DGame
             }
         }
 
-        //µ¥¹ÌÁö ÀÌº¥Æ®¿¡ µî·ÏµÇ´Â ÇÔ¼ö
+        //ë°ë¯¸ì§€ ì´ë²¤íŠ¸ì— ë“±ë¡ë˜ëŠ” í•¨ìˆ˜
         public void OnHit(float damage, Vector2 knockback)
         {
             rb2D.linearVelocity = new Vector2(knockback.x, rb2D.linearVelocityY + knockback.y);
@@ -221,27 +242,43 @@ namespace My2DGame
 
         public void OnBowAttack(InputAction.CallbackContext context)
         {
-
             if (context.started && touchingDirections.IsGround)
             {
+                if (bowCooldownTimer > 0f) return; // ì¿¨íƒ€ì„ ì¤‘ì´ë©´ ë°œì‚¬ ì•ˆë¨
+
                 animator.SetTrigger(AnimationString.BowAttackTrigger);
 
-                ShootArrow();
+                // 0.7ì´ˆ ë”œë ˆì´ í›„ í™”ì‚´ ë°œì‚¬
+                StartCoroutine(FireArrowWithDelay(0.7f));
+
+                // ì¿¨íƒ€ì„ ì´ˆê¸°í™”
+                bowCooldownTimer = bowCooldown;
             }
         }
+        private System.Collections.IEnumerator FireArrowWithDelay(float delay)
+        {
+            yield return new WaitForSeconds(delay);
+
+            ShootArrow();
+        }
+
         private void ShootArrow()
         {
             if (arrowPrefab == null || firePoint == null)
                 return;
 
-            // È­»ì »ı¼º
+            // í™”ì‚´ ìƒì„±
             GameObject arrow = Instantiate(arrowPrefab, firePoint.position, Quaternion.identity);
 
-            // ¹Ù¶óº¸´Â ¹æÇâÀ¸·Î ¹ß»ç
+            // ë°œì‚¬
+            // ë°”ë¼ë³´ëŠ” ë°©í–¥ìœ¼ë¡œ íšŒì „
+            float direction = IsFacingRight ? 1f : -1f;
+            arrow.transform.rotation = Quaternion.Euler(0f, 0f, direction > 0 ? 0f : 180f);
+
+            // Rigidbody2D ì†ë„ ì„¤ì •
             Rigidbody2D rb = arrow.GetComponent<Rigidbody2D>();
             if (rb != null)
             {
-                float direction = IsFacingRight ? 1f : -1f;
                 rb.linearVelocity = new Vector2(direction * arrowSpeed, 0f);
             }
         }

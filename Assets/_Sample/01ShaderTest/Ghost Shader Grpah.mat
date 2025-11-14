@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Desolve Shader Graph
-  m_Shader: {fileID: -6465566751694194690, guid: a064d191fb5e5ac4f8506003f9838314, type: 3}
+  m_Name: Ghost Shader Grpah
+  m_Shader: {fileID: -6465566751694194690, guid: c49c42150e468714e896051052884dee, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -27,14 +27,6 @@ Material:
         m_Texture: {fileID: 2800000, guid: 47af13d1debf7134db682e084c2f05b3, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _MaskTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _NormalMap:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -49,13 +41,12 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _GlowSize: 0.1
-    - _SplitValue: 1
+    - _Alpha: 1
     m_Colors:
-    - _GlowColor: {r: 15.999998, g: 4.849457, b: 0, a: 0}
+    - _GhostColor: {r: 0.6981132, g: 0.14818436, b: 0.14818436, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
---- !u!114 &7049457984029099338
+--- !u!114 &1058413222710232176
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}

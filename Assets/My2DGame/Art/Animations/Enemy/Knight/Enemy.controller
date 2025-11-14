@@ -28,6 +28,7 @@ AnimatorState:
   - {fileID: 4146460512404606110}
   m_StateMachineBehaviours:
   - {fileID: 1914552520190732876}
+  - {fileID: -5627918953905915376}
   m_Position: {x: 50, y: 50, z: 0}
   m_IKOnFeet: 0
   m_WriteDefaultValues: 1
@@ -49,7 +50,10 @@ AnimatorTransition:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: 
-  m_Conditions: []
+  m_Conditions:
+  - m_ConditionMode: 2
+    m_ConditionEvent: HasTarget
+    m_EventTreshold: 0
   m_DstStateMachine: {fileID: 6829780834913015162}
   m_DstState: {fileID: 0}
   m_Solo: 0
@@ -81,6 +85,21 @@ AnimatorStateTransition:
   m_InterruptionSource: 0
   m_OrderedInterruption: 1
   m_CanTransitionToSelf: 0
+--- !u!114 &-5627918953905915376
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a2a494fb25924048ab26f532b9ba11b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  boolName: CannotMove
+  enterValue: 1
+  exitValue: 0
 --- !u!114 &-4222857250157519716
 MonoBehaviour:
   m_ObjectHideFlags: 1

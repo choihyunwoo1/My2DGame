@@ -122,10 +122,21 @@ namespace My2DGame
 
         private void Update()
         {
-            //적 감지
-            HasTarget = (DetectionZone.detectedColliders.Count > 0);
+            bool playerDetected = false;
 
-            //공격 쿨 다운
+            foreach (var col in DetectionZone.detectedColliders)
+            {
+                if (col != null && col.CompareTag("Player"))
+                {
+                    playerDetected = true;
+                    break;
+                }
+            }
+
+            // HasTarget은 오직 Player 감지 기준
+            HasTarget = playerDetected;
+
+            // 공격 쿨타임 처리
             if (CoolDownTime > 0f)
             {
                 CoolDownTime -= Time.deltaTime;

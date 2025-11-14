@@ -16,6 +16,9 @@ namespace My2DGame
         private Collider2D col;
         private bool hasHit = false; // 한 번만 충돌 처리
 
+        [SerializeField] private GameObject hitEffectPrefab; // 적중 이펙트 프리팹
+        [SerializeField] private float hitEffectLifeTime = 0.5f;
+
         private void Awake()
         {
             rb = GetComponent<Rigidbody2D>();
@@ -47,6 +50,13 @@ namespace My2DGame
 
                 // 데미지 적용
                 target.TakeDamage(damage, knockback);
+
+                // 적중 이펙트 생성
+                if (hitEffectPrefab != null)
+                {
+                    GameObject effect = Instantiate(hitEffectPrefab, transform.position, Quaternion.identity);
+                    Destroy(effect, hitEffectLifeTime);
+                }
             }
 
             // 충돌 즉시 제거 (또는 충돌 애니메이션 추가 가능)
